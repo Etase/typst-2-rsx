@@ -8,4 +8,3 @@ anyhow = "1.0.95"
 dioxus = "0.6.2"
 serde ={ version = "1.0.217", features = ["derive"]}
 serde-xml-rs = "0.6.0"
-serde_json = "1.0.137"
