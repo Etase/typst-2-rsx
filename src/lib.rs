@@ -25,7 +25,7 @@ mod tests {
     }
 }
 
-// 解析svg需要的结构体
+// Struct required for parsing SVG
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "lowercase")]
 pub struct Svg {
@@ -141,31 +141,31 @@ pub struct D {
     content: String,
 }
 
-// 编译.typ文件,输出.svg
+// Compile a .typ file and output an .svg file
 pub fn typst_compile(
     input_typ_file: &str,
     output_svg_file: &str,
 ) -> Result<ExitStatus, std::io::Error> {
-    // 确保文件夹存在（如果不存在，就递归创建）
+    // Ensure the directory exists (create it recursively if it doesn't)
     let path = std::path::Path::new(output_svg_file);
     if !path.exists() {
         fs::create_dir_all(path.parent().unwrap())?;
     }
     let status = Command::new("typst")
-        .arg("compile") // typst 的编译命令
-        .arg(input_typ_file) // 输入文件
-        .arg(output_svg_file) // 输出文件
+        .arg("compile") // Typst compile command
+        .arg(input_typ_file) // Input file
+        .arg(output_svg_file) // Output file
         .status();
     status
 }
 
-// 根据svg字符串递归构建rsx
+// Recursively construct RSX from an SVG string
 pub fn parse_svg_to_rsx(svg_str: &str) -> Result<Element, String> {
-    // 首先将svg字符串解析为svg结构体
+    // First, parse the SVG string into an SVG structure
     match from_str(svg_str) {
         Ok(svg) => {
             let parsed: Svg = svg;
-            // 递归构建rsx
+            // Recursively construct RSX
             Ok(rsx!(
                 svg {
                     view_box: parsed.view_box.clone(),
@@ -182,7 +182,7 @@ pub fn parse_svg_to_rsx(svg_str: &str) -> Result<Element, String> {
     }
 }
 
-// 子步骤,将Ele构建为rsx
+// Sub-step: Construct Ele as rsx
 fn construct_rsx_from_ele(tag: &SvgEle) -> Element {
     match tag {
         SvgEle::Path(path) => {
@@ -217,7 +217,7 @@ fn construct_rsx_from_ele(tag: &SvgEle) -> Element {
     }
 }
 
-// 子步骤,将GEle构建为rsx
+// Sub-step: Construct GEle as rsx
 fn construct_rsx_from_gele(tag: &GEle) -> Element {
     match tag {
         GEle::G(g) => {
@@ -258,7 +258,7 @@ fn construct_rsx_from_gele(tag: &GEle) -> Element {
     }
 }
 
-// 子步骤,将symbol构建为rsx
+// Sub-step: Construct Symbol as rsx
 fn construct_rsx_from_symbol(tag: &Symbol) -> Element {
     rsx!(
         symbol { id: tag.id.clone(), overflow: tag.overflow.clone(),
@@ -276,18 +276,18 @@ fn construct_rsx_from_symbol(tag: &Symbol) -> Element {
     )
 }
 
-// 读取文件
+// Read file
 fn read_file(path: &str) -> Result<String, String> {
-    match fs::File::open(path).with_context(|| "打开文件失败") {
+    match fs::File::open(path).with_context(|| "Failed to open file") {
         Ok(file) => {
             let reader = io::BufReader::new(file);
 
             let mut content = String::new();
             for line in reader.lines() {
-                match line.with_context(|| "读取内容失败") {
+                match line.with_context(|| "Failed to read content") {
                     Ok(lines) => {
                         content.push_str(&lines);
-                        content.push('\n'); // 手动追加换行符，保持原格式
+                        content.push('\n'); // Manually append a newline to preserve the original format
                     }
                     Err(e) => {
                         eprintln!("{:?}", e)
