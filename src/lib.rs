@@ -1,11 +1,13 @@
 use dioxus::prelude::*;
-use serde::{Deserialize, Serialize};
 use serde_xml_rs::from_str;
 use std::io::BufRead;
 use std::{
     fs, io,
     process::{Command, ExitStatus},
 };
+
+pub mod types;
+use types::*;
 
 #[cfg(test)]
 mod tests {
@@ -16,122 +18,6 @@ mod tests {
         let rsx = typst_to_rsx("./temp/temp.typ");
         println!("{:?}", rsx);
     }
-}
-
-// Struct required for parsing SVG
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
-#[serde(rename_all = "lowercase")]
-pub struct Svg {
-    class: String,
-    width: String,
-    height: String,
-    #[serde(rename = "viewBox")]
-    view_box: String,
-    #[serde(rename = "$value")]
-    elements: Vec<SvgEle>,
-}
-
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
-#[serde(rename_all = "lowercase")]
-pub enum SvgEle {
-    Path(Path),
-    G(G),
-    Defs(Defs),
-}
-
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
-#[serde(rename_all = "kebab-case")]
-pub struct Path {
-    d: String,
-    class: Option<String>,
-    fill: Option<String>,
-    stroke: Option<String>,
-    #[serde(rename = "fill-rule")]
-    fill_rule: Option<String>,
-    #[serde(rename = "stroke-width")]
-    stroke_width: Option<String>,
-    #[serde(rename = "stroke-linecap")]
-    stroke_linecap: Option<String>,
-    #[serde(rename = "stroke-linejoin")]
-    stroke_linejoin: Option<String>,
-    #[serde(rename = "stroke-miterlimit")]
-    stroke_miterlimit: Option<String>,
-    // #[serde(rename = "$value")]
-    // elements: Vec<PathEle>
-}
-
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
-#[serde(rename_all = "kebab-case")]
-pub enum PathEle {
-    Class(String),
-    Fill(String),
-    D(String),
-    FillRule(String),
-}
-
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
-pub struct G {
-    class: Option<String>,
-    transform: Option<String>,
-    #[serde(rename = "$value")]
-    elements: Vec<GEle>,
-}
-
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
-#[serde(rename_all = "lowercase")]
-pub enum GEle {
-    Class(String),
-    G(G),
-    Use(Use),
-    Path(Path),
-}
-
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
-#[serde(rename_all = "kebab-case")]
-pub struct Use {
-    fill: String,
-    x: String,
-    fill_rule: String,
-    href: String,
-}
-
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
-pub struct Defs {
-    id: String,
-    #[serde(rename = "$value")]
-    elements: Vec<Symbol>,
-}
-
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
-pub struct Symbol {
-    id: String,
-    overflow: String,
-    #[serde(rename = "$value")]
-    element: Path,
-}
-
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
-pub struct Class {
-    #[serde(rename = "$value")]
-    content: String,
-}
-
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
-pub struct Fill {
-    #[serde(rename = "$value")]
-    content: String,
-}
-
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
-pub struct FillRule {
-    #[serde(rename = "$value")]
-    content: String,
-}
-
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
-pub struct D {
-    #[serde(rename = "$value")]
-    content: String,
 }
 
 // Compile a .typ file and output an .svg file
@@ -292,7 +178,6 @@ fn read_file(path: &str) -> Result<String, String> {
         }
         Err(e) => {
             panic!();
-            Ok(String::new())
         }
     }
 }
