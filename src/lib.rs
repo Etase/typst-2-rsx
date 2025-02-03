@@ -22,23 +22,32 @@ mod tests {
 
 /// Compile the Typst file for SVG output.
 ///
+/// This function requires the Typst CLI to be installed and accessible from the system's PATH.
+/// Ensure that you have Typst installed and properly configured before using this function.
+/// You can install Typst by following the instructions at: https://github.com/typst/typst
+///
 /// This function accepts the Typst file path for the input and the SVG file path for the output, ensuring that the output directory exists and is created if necessary.
 /// The external 'typst' command is then invoked to perform the compilation operation.
 ///
 /// # parameter
+///
 /// - 'input_typ_file' : specifies the path to the Typst file, usually a.typ file.
 /// - 'output_svg_file' : path to the output SVG file that will contain the compiled image contents.
 ///
 /// # Return value
+///
 /// Returns a 'Result' containing the following two cases:
+///
 /// - 'Ok(ExitStatus)' : If the compilation succeeds, return the exit status of the 'typst' command, indicating the result of the command execution.
 /// - 'Err(io::Error)' : If an IO error occurs when a directory is created or a command is executed, an error message is returned.
 ///
 /// # Error handling
+///
 /// If the output directory does not exist, the function will attempt to create it. If you encounter an error creating a directory or calling the 'typst' command,
 /// The function returns an 'io::Error', which may be caused by a file system permission problem or a command failure.
 ///
 /// # Example
+///
 /// ```rust
 /// let input_file = "example.typ";
 /// let output_file = "output.svg";
@@ -46,7 +55,7 @@ mod tests {
 /// match result {
 ///     Ok(status) => println! ("Compilation finished with status: {}", status),
 ///     Err(e) => eprintln! ("Failed to compile: {}", e),
-///}
+/// }
 /// ```
 // Compile a .typ file and output an .svg file
 pub fn typst_compile(
@@ -68,32 +77,38 @@ pub fn typst_compile(
 
 /// Parses an SVG string and converts it to RSX code.
 ///
-/// This function first parses the input SVG string into an 'Svg' structure and then converts it into an RSX format element.
+/// This function first parses the input SVG string into an `Svg` structure and then converts it into an RSX format element.
 /// RSX is a JSX-like syntax for building UI elements. This function recursively builds the RSX element and returns it.
 ///
 /// # parameter
-/// - 'svg_str' : a string reference representing the SVG content to be parsed.
+///
+/// - `svg_str` : a string reference representing the SVG content to be parsed.
 ///
 /// # Return value
+///
 /// Returns a Result type:
-/// - 'Ok(Element)' : If parsing is successful, return the converted RSX element.
-/// - 'Err(String)' : If an error occurs, an error message string is returned.
+///
+/// - `Ok(Element)` : If parsing is successful, return the converted RSX element.
+/// - `Err(String)` : If an error occurs, an error message string is returned.
 ///
 /// # Error handling
-/// If SVG string parsing fails, the function returns an error message, which in the current implementation is handled as' panic! 'This may require further improvement.
+///
+/// If SVG string parsing fails, the function returns an error message, which in the current implementation is handled as `panic!` This may require further improvement.
 ///
 /// # Example
+///
 /// ```rust
-/// let svg_str = "<svg viewBox='0 0 100 100' width='100' height='100'></svg>";
+/// let svg_str = "<svg viewBox=`0 0 100 100` width=`100` height=`100`></svg>";
 /// match parse_svg_to_rsx(svg_str) {
 ///     Ok(element) => println! ("RSX: {:? }", element),
 ///     Err(e) => eprintln! ("Error: {}", e),
-///}
-/// ' '
+/// }
+/// ```
 ///
 /// # Attention
-/// - This function relies on the 'from_str' function to parse the SVG string, assuming that the string is properly formatted. Misformatted SVG strings can cause parsing failures.
-/// - The current implementation will directly 'panic! It is recommended to further improve error handling in production environments to avoid program crashes.
+///
+/// - This function relies on the `from_str` function to parse the SVG string, assuming that the string is properly formatted. Misformatted SVG strings can cause parsing failures.
+/// - The current implementation will directly `panic!` It is recommended to further improve error handling in production environments to avoid program crashes.
 ///
 // Recursively construct RSX from an SVG string
 pub fn parse_svg_to_rsx(svg_str: &str) -> Result<Element, String> {
@@ -245,16 +260,20 @@ fn read_file(path: &str) -> Result<String, String> {
 /// Then parses the contents of the SVG file and converts them to RSX format elements.
 ///
 /// # parameter
-/// - 'input_typ_file' : specifies the path to the Typst file. The function will compile the file into an SVG file for processing.
+///
+/// - `input_typ_file` : specifies the path to the Typst file. The function will compile the file into an SVG file for processing.
 ///
 /// # Return value
-/// Returns an 'Element', the parsed RSX element.
+///
+/// Returns an `Element`, the parsed RSX element.
 ///
 /// # Error handling
-/// - If Typst fails to compile or read the SVG file, the function calls' panic! () 'Suspension of execution.
-/// - If SVG parsing fails, the function also triggers' panic! () ', and returns the empty RSX element.
+///
+/// - If Typst fails to compile or read the SVG file, the function calls `panic!()` Suspension of execution.
+/// - If SVG parsing fails, the function also triggers `panic!()` , and returns the empty RSX element.
 ///
 /// # Example
+///
 /// ```rust
 /// let rsx_element = typst_to_rsx("example.typ");
 /// // continue with rsx_element...

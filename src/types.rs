@@ -19,7 +19,7 @@ use serde::{Deserialize, Serialize};
 ///     height: "100".to_string(),
 ///     view_box: "0 0 100 100".to_string(),
 ///     elements: vec! [SvgEle::Path("M10 10H90V90H10Z".to_string())],
-///};
+/// };
 ///
 /// // Serializes the Svg structure to JSON
 /// let serialized = serde_json::to_string(&svg).unwrap();
@@ -28,15 +28,15 @@ use serde::{Deserialize, Serialize};
 /// // deserialize the JSON string back into the Svg structure
 /// let deserialized: Svg = serde_json::from_str(&serialized).unwrap();
 /// assert_eq! (svg, deserialized);
-/// ' '
+/// ```
 ///
-/// # field
+/// # Field
 ///
-/// - 'class' : name of a CSS style class that can be used for SVG appearance control.
-/// - 'width' : the width of the SVG, usually in pixels (px).
-/// - 'height' : the height of the SVG, usually in pixels (px).
-/// - 'view_box' : the viewBox attribute of SVG, which defines the coordinate system range of SVG.
-/// - 'elements' : a list of elements inside SVG, including the' SvgEle 'enumeration, representing different SVG child elements.
+/// - `class` : name of a CSS style class that can be used for SVG appearance control.
+/// - `width` : the width of the SVG, usually in pixels (px).
+/// - `height` : the height of the SVG, usually in pixels (px).
+/// - `view_box` : the viewBox attribute of SVG, which defines the coordinate system range of SVG.
+/// - `elements` : a list of elements inside SVG, including the `SvgEle` enumeration, representing different SVG child elements.
 ///
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Svg {
@@ -60,11 +60,11 @@ pub struct Svg {
 
 /// Represents the child element enumeration type inside SVG.
 ///
-/// This enumeration is used to store different types of SVG elements such as' Path '(path),' G '(grouping),' Defs' (definition).
-/// Where each variant corresponds to a specific SVG element structure, such as' Path 'for the <path> tag,' G 'for the <g> tag, and so on.
+/// This enumeration is used to store different types of SVG elements such as `Path` (path), `G` (grouping), `Defs` (definition).
+/// Where each variant corresponds to a specific SVG element structure, such as `Path` for the `<path>` tag, `G` for the `<g>` tag, and so on.
 ///
 /// The enumeration is serialized/deserialized using #[serde(rename_all = "kebab-case")].
-/// Ensure that the field name conforms to the SVG specification in JSON or XML (for example, the 'Path' variant will be serialized to 'path').
+/// Ensure that the field name conforms to the SVG specification in JSON or XML (for example, the `Path` variant will be serialized to `path`).
 ///
 /// # Example
 ///
@@ -74,7 +74,7 @@ pub struct Svg {
 ///
 /// let path_element = SvgEle::Path(Path {
 ///     d: "M10 10H90V90H10Z".to_string(),
-///});
+/// });
 ///
 /// // Serializes to JSON
 /// let serialized = serde_json::to_string(&path_element).unwrap();
@@ -83,13 +83,13 @@ pub struct Svg {
 /// // deserialize the JSON string back to SvgEle
 /// let deserialized: SvgEle = serde_json::from_str(&serialized).unwrap();
 /// assert_eq! (path_element, deserialized);
-/// ' '
+/// ```
 ///
-/// # variant
+/// # Variant
 ///
-/// - 'Path(Path)' : SVG '<path>' element, containing 'd' attribute defines path data.
-/// - 'G(G)' : SVG '<g>' grouping element, used to organize child elements.
-/// - 'Defs(Defs)' : SVG '<defs>' Defines a container for storing reusable graphic elements.
+/// - `Path(Path)` : SVG `<path>` element, containing `d` attribute defines path data.
+/// - `G(G)` : SVG `<g>` grouping element, used to organize child elements.
+/// - `Defs(Defs)` : SVG `<defs>` Defines a container for storing reusable graphic elements.
 ///
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "kebab-case")]
@@ -123,15 +123,16 @@ pub struct Path {
     pub stroke_miterlimit: Option<String>,
 }
 
-/// Represents a collection of attributes for SVG '<path>' elements.
+/// Represents a collection of attributes for SVG `<path>` elements.
 ///
-/// The 'PathEle' enumeration is used to define common attributes of the '<path>' element, such as' class ', 'fill', 'd' (path data),
-/// and support **JSON serialization/deserialization **, using **kebab-case** naming format.
+/// The `PathEle` enumeration is used to define common attributes of the `<path>` element, such as `class`, `fill`, `d` (path data),
+/// and support **JSON serialization/deserialization**, using **kebab-case** naming format.
 ///
 /// For example:
+///
 /// ```json
 /// { "class": "stroke-primary" }
-/// ' '
+/// ```
 ///
 /// # Example
 ///
@@ -149,16 +150,16 @@ pub struct Path {
 /// // deserialize back to PathEle
 /// let deserialized: PathEle = serde_json::from_str(&serialized).unwrap();
 /// assert_eq! (class_attr, deserialized);
-/// ' '
+/// ```
 ///
 /// # JSON format
 ///
-/// - ** 'class' ** : Specifies SVG '<path>' CSS class (string)
-/// - ** 'fill' ** : Specifies the fill color of <path> (string)
-/// - ** 'd' ** : Define path data (d 'attribute, string)
-/// - ** ` fill - rule ` * * : define filling rules (such as ` "evenodd" ` or ` "nonzero" `)
+/// - **`class`** : Specifies SVG `<path>` CSS class (string)
+/// - **`fill`** : Specifies the fill color of `<path>` (string)
+/// - **`d`** : Define path data (`d` attribute, string)
+/// - **`fill - rule`** : define filling rules (such as `"evenodd"` or `"nonzero"`)
 ///
-/// Because of '#[serde(rename_all = "kebab-case")]', all JSON fields will be automatically converted to **kebab-case** format.
+/// Because of `#[serde(rename_all = "kebab-case")]`, all JSON fields will be automatically converted to **kebab-case** format.
 ///
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "kebab-case")]
@@ -177,9 +178,9 @@ pub enum PathEle {
 }
 
 /// represents the <g> (Group) element in SVG,
-/// Can be used to group multiple SVG child elements and apply a 'class' style or 'transform' transform.
+/// Can be used to group multiple SVG child elements and apply a `class` style or `transform` transform.
 ///
-/// The 'G' struct supports ** optional attributes **, such as' class '(CSS class) and' transform '(transform).
+/// The `G` struct supports **optional attributes**, such as ` class ` (CSS class) and ` transform ` (transform).
 ///
 /// # Example
 ///
@@ -192,7 +193,7 @@ pub enum PathEle {
 ///     class: Some("my-group".to_string()),
 ///     transform: Some("rotate(45)".to_string()),
 ///     elements: vec! [GEle::Circle("cx=50 cy=50 r=40".to_string())],
-///};
+/// };
 ///
 /// // Serializes the G struct to JSON
 /// let serialized = serde_json::to_string(&group).unwrap();
@@ -201,13 +202,13 @@ pub enum PathEle {
 /// // deserialize the JSON string back to the G struct
 /// let deserialized: G = serde_json::from_str(&serialized).unwrap();
 /// assert_eq! (group, deserialized);
-/// ' '
+/// ```
 ///
-/// # field
+/// # Field
 ///
-/// - 'class' (optional) : The CSS class name of the SVG '<g>' element, used to apply the style.
-/// - 'transform' (optional) : The transform attribute, such as' rotate(45) ', affects all elements in the group.
-/// - 'elements' : List of included SVG child elements (type' GEle ').
+/// - `class` (optional) : The CSS class name of the SVG `<g>` element, used to apply the style.
+/// - `transform` (optional) : The transform attribute, such as ` rotate(45) `, affects all elements in the group.
+/// - `elements` : List of included SVG child elements (type ` GEle `).
 ///
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct G {
@@ -222,10 +223,10 @@ pub struct G {
     pub elements: Vec<GEle>,
 }
 
-/// represents the enumerated type of g (grouping), use (reference), path (path) and other elements in an SVG image.
+/// Represents the enumerated type of `g` (grouping), `use` (reference), `path` (path) and other elements in an SVG image.
 ///
-/// This enumeration is used to represent different types of SVG elements and uses' serde(rename_all = "kebab-case") '
-/// Perform JSON serialization/deserialization to make the field names conform to the SVG specification (e.g. 'class', 'g', 'use', 'path').
+/// This enumeration is used to represent different types of SVG elements and uses `serde(rename_all = "kebab-case")`
+/// Perform JSON serialization/deserialization to make the field names conform to the SVG specification (e.g. `class`, `g`, `use`, `path`).
 ///
 /// # Example
 ///
@@ -240,14 +241,14 @@ pub struct G {
 ///
 /// let deserialized: GEle = serde_json::from_str(&serialized).unwrap();
 /// assert_eq! (path_element, deserialized);
-/// ' '
+/// ```
 ///
 /// # Variants
 ///
-/// - 'Class(String)' : represents the class attribute, usually used to define CSS style classes.
-/// - 'G(G)' : stands for '<g>' element (grouping), used to organize multiple SVG elements.
-/// - 'Use(Use)' : represents the <use> element, representing references to other SVG elements.
-/// - 'Path(Path)' : represents the <path> element, which defines a path in SVG.
+/// - `Class(String)` : represents the class attribute, usually used to define CSS style classes.
+/// - `G(G)` : stands for `<g>` element (grouping), used to organize multiple SVG elements.
+/// - `Use(Use)` : represents the `<use>` element, representing references to other SVG elements.
+/// - `Path(Path)` : represents the `<path>` element, which defines a path in SVG.
 ///
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "kebab-case")]
@@ -264,11 +265,10 @@ pub enum GEle {
     /// represents the '<path>' element, which defines the path in SVG
     Path(Path),
 }
-
-/// represents the structure of the SVG '<use>' element.
+/// Represents the structure of the SVG `<use>` element.
 ///
-/// The 'Use' struct is used to describe SVG's '<use>' tag, which is used to reuse existing graphic elements.
-/// This struct supports Serialize/Deserialize ** and uses a 'kebab-case' field name to conform to the naming style of SVG attributes.
+/// The `Use` struct is used to describe SVG `<use>` tag, which is used to reuse existing graphic elements.
+/// This struct supports **Serialize/Deserialize** and uses a`kebab-case` field name to conform to the naming style of SVG attributes.
 ///
 /// # Example
 ///
@@ -281,7 +281,7 @@ pub enum GEle {
 ///     x: "10".to_string(),
 ///     fill_rule: "evenodd".to_string(),
 ///     href: "#circle1".to_string(),
-///};
+/// };
 ///
 /// // serializes the Use structure to JSON
 /// let serialized = serde_json::to_string(&use_element).unwrap();
@@ -290,14 +290,14 @@ pub enum GEle {
 /// // deserialize the JSON string back to the Use structure
 /// let deserialized: Use = serde_json::from_str(&serialized).unwrap();
 /// assert_eq! (use_element, deserialized);
-/// ' '
+/// ```
 ///
-/// # Field description
+/// # Field
 ///
-/// - ` fill ` : fill color, such as ` "red" `, ` "# ff0000" ` or ` ` "none".
-/// - 'x' : the x coordinate of the element, usually a pixel value or a percentage string.
-/// - 'fill_rule' : Fill rule. Possible values include 'nonzero' or 'evenodd'.
-/// - 'href' : The ID of the referenced SVG element, usually in the form "#id", for example "#circle1".
+/// - `fill` : fill color, such as `"red"`, `"#ff0000"` or `"none"`.
+/// - `x` : the x coordinate of the element, usually a pixel value or a percentage string.
+/// - `fill_rule` : Fill rule. Possible values include `nonzero` or `evenodd`.
+/// - `href` : The ID of the referenced SVG element, usually in the form "#id", for example "#circle1".
 ///
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "kebab-case")]
@@ -315,10 +315,10 @@ pub struct Use {
     pub href: String,
 }
 
-/// represents the struct of the '<defs>' element, which is used to store reusable SVG definitions.
+/// Represents the struct of the `<defs>` element, which is used to store reusable SVG definitions.
 ///
-/// The 'Defs' structure is usually used to contain reusable SVG elements such as' symbols', which are not rendered directly.
-/// but can be referenced in SVG's 'use' tag.
+/// The `Defs` structure is usually used to contain reusable SVG elements such as `symbols`, which are not rendered directly.
+/// but can be referenced in SVG `s` use` tag.
 ///
 /// # Example
 ///
@@ -331,8 +331,8 @@ pub struct Use {
 ///     elements: vec! [Symbol {
 ///         id: "icon-star".to_string(),
 ///         elements: vec! [], // Omit the internal structure
-///}],
-///};
+/// }],
+/// };
 ///
 /// // Serializes the Defs structure to JSON
 /// let serialized = serde_json::to_string(&defs).unwrap();
@@ -341,12 +341,12 @@ pub struct Use {
 /// // deserialize the JSON string back to the Defs structure
 /// let deserialized: Defs = serde_json::from_str(&serialized).unwrap();
 /// assert_eq! (defs, deserialized);
-/// ' '
+/// ```
 ///
 /// # field
 ///
-/// - 'id' : The ID of the <defs> element, which can be used to uniquely identify the definition block.
-/// - 'elements' : contains a list of' Symbol 'elements to store reusable graphic definitions.
+/// - `id` : The ID of the `<defs>` element, which can be used to uniquely identify the definition block.
+/// - `elements` : contains a list of `Symbol` elements to store reusable graphic definitions.
 ///
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Defs {
@@ -360,12 +360,12 @@ pub struct Defs {
     pub elements: Vec<Symbol>,
 }
 
-/// Represents an SVG symbol (' <symbol> ') structure.
+/// Represents an SVG symbol (`<symbol>`) structure.
 ///
-/// This structure is used to store the basic information of SVG symbol elements, including id, overflow, and other attributes.
-/// and the internal Path element (path information).
+/// This structure is used to store the basic information of SVG symbol elements, including `id`, `overflow`, and other attributes.
+/// and the internal `Path` element (path information).
 ///
-/// The 'Symbol' structure is commonly used to define reusable SVG fragments and can be referenced in multiple places via the <use> tag.
+/// The `Symbol` structure is commonly used to define reusable SVG fragments and can be referenced in multiple places via the `<use>` tag.
 ///
 /// # Example
 ///
@@ -378,7 +378,7 @@ pub struct Defs {
 ///     id: "my-symbol".to_string(),
 ///     overflow: "visible".to_string(),
 ///     element: Path("M10 10H90V90H10Z".to_string()),
-///};
+/// };
 ///
 /// // Serializes the Symbol structure to JSON
 /// let serialized = serde_json::to_string(&symbol).unwrap();
@@ -387,13 +387,13 @@ pub struct Defs {
 /// // deserialize the JSON string back to the Symbol structure
 /// let deserialized: Symbol = serde_json::from_str(&serialized).unwrap();
 /// assert_eq! (symbol, deserialized);
-/// ' '
+/// ```
 ///
-/// # field
+/// # Field
 ///
-/// - 'id' : a unique identifier for the SVG symbol, which can be used for '<use>' tag references.
-/// - 'overflow' : The overflow style attribute of the symbol that defines whether content overflow is allowed.
-/// - 'element' : The Path inside the symbol, representing the graphic content inside the symbol.
+/// - `id` : a unique identifier for the SVG symbol, which can be used for `<use>` tag references.
+/// - `overflow` : The overflow style attribute of the symbol that defines whether content overflow is allowed.
+/// - `element` : The Path inside the symbol, representing the graphic content inside the symbol.
 ///
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Symbol {
@@ -408,10 +408,10 @@ pub struct Symbol {
     pub element: Path,
 }
 
-/// Represents a 'Class' struct containing text content.
+/// Represents a `Class` struct containing text content.
 ///
 /// This structure is mainly used to store text content in SVG or other XML formats, and supports Serialize and
-/// 'Deserialize'.
+/// `Deserialize`.
 ///
 /// # Example
 ///
@@ -421,20 +421,20 @@ pub struct Symbol {
 ///
 /// let class = Class {
 ///     content: "icon-style".to_string(),
-///};
+/// };
 ///
 /// // Serializes to JSON
 /// let serialized = serde_json::to_string(&class).unwrap();
-/// assert_eq! (serialized, r#""icon-style""#);
+/// assert_eq! (serialized, r#"icon-style"#);
 ///
-/// // deserialize the JSON string back to the 'Class' structure
+/// // deserialize the JSON string back to the `Class` structure
 /// let deserialized: Class = serde_json::from_str(&serialized).unwrap();
 /// assert_eq! (class, deserialized);
-/// ' '
+/// ```
 ///
-/// # field
+/// # Field
 ///
-/// - 'content' : The actual stored text content, represented as a JSON direct string when serialized.
+/// - `content` : The actual stored text content, represented as a JSON direct string when serialized.
 ///
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Class {
@@ -443,10 +443,10 @@ pub struct Class {
     content: String,
 }
 
-/// Represents the structure of the SVG fill attribute (' fill ').
+/// Represents the structure of the SVG fill attribute (`fill`).
 ///
-/// This structure is used to store the value of the SVG 'fill' attribute and supports Serialize and Deserialize.
-/// where the 'content' field is serde serialized/deserialized to ** direct text values ** instead of JSON key-value pairs.
+/// This structure is used to store the value of the SVG `fill` attribute and supports Serialize and Deserialize.
+/// where the `content` field is serde serialized/deserialized to **direct text values** instead of JSON key-value pairs.
 ///
 /// # Example
 ///
@@ -458,7 +458,7 @@ pub struct Class {
 /// // Creates the Fill structure
 /// let fill = Fill {
 ///     content: "red".to_string(),
-///};
+/// };
 ///
 /// // Serializes to XML
 /// let serialized = to_string(&fill).unwrap();
@@ -467,11 +467,11 @@ pub struct Class {
 /// // deserialize the XML
 /// let deserialized: Fill = from_str("<Fill>blue</Fill>").unwrap();
 /// assert_eq! (deserialized.content, "blue");
-/// ' '
+/// ```
 ///
-/// # field
+/// # Field
 ///
-/// - ` content ` : fill color values, such as ` "red" `, ` "# FF0000" `, ` ` "none".
+/// - `content` : fill color values, such as `"red"`, `"#FF0000"`, `"none"`.
 ///
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Fill {
@@ -480,10 +480,10 @@ pub struct Fill {
     content: String,
 }
 
-/// represents the 'fill-rule' attribute in SVG, which defines the fill rule.
+/// Represents the `fill-rule` attribute in SVG, which defines the fill rule.
 ///
-/// 'fill-rule' determines how to determine the fill area according to the path direction, and is usually used for the path, polygon, and clipPath elements.
-/// Its value is usually 'nonzero' or 'evenodd'.
+/// `fill-rule` determines how to determine the fill area according to the path direction, and is usually used for the `path`, `polygon`, and `clipPath` elements.
+/// Its value is usually `nonzero` or `evenodd`.
 ///
 /// # Example
 ///
@@ -495,7 +495,7 @@ pub struct Fill {
 /// // Creates the FillRule structure
 /// let fill_rule = FillRule {
 ///     content: "evenodd".to_string(),
-///};
+/// };
 ///
 /// // Serializes to XML
 /// let serialized = to_string(&fill_rule).unwrap();
@@ -504,13 +504,13 @@ pub struct Fill {
 /// // deserialize the XML
 /// let deserialized: FillRule = from_str(&serialized).unwrap();
 /// assert_eq! (fill_rule, deserialized);
-/// ' '
+/// ```
 ///
 /// # field
 ///
-/// - 'content' : The value of the filling rule. Common values include:
-/// - '"nonzero"' : nonzero surround rule (default).
-/// - '"evenodd"' : indicates an odd-even wrapping rule.
+/// - `content` : The value of the filling rule. Common values include:
+/// - `"nonzero"` : nonzero surround rule (default).
+/// - `"evenodd"` : indicates an odd-even wrapping rule.
 ///
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct FillRule {
@@ -521,7 +521,7 @@ pub struct FillRule {
 
 /// Represents a simple structure with serializable and deserialized capabilities that contains a content field.
 ///
-/// This struct is mainly used to store a string field 'content', which is renamed by '$value'
+/// This struct is mainly used to store a string field `content`, which is renamed by `$value`
 /// is the value part of JSON, using specific field names when serializing and deserializing.
 ///
 /// # Example
@@ -531,21 +531,21 @@ pub struct FillRule {
 /// use my_lib::D;
 ///
 /// let d = D {
-///     content: "Hello, World!" .to_string(),
-///};
+/// content: "Hello, World!" .to_string(),
+/// };
 ///
 /// // Serializes the D structure to JSON
 /// let serialized = serde_json::to_string(&d).unwrap();
-/// println! ("{}", serialized);  // Output: "Hello, World!"
+/// println! ("{}", serialized); // Output: "Hello, World!"
 ///
 /// // deserialize the JSON string back to the D structure
 /// let deserialized: D = serde_json::from_str(&serialized).unwrap();
 /// assert_eq! (d, deserialized);
-/// ' '
+/// ```
 ///
-/// # field
+/// # Field
 ///
-/// - 'content' : Stores the content of the string, renaming it as' $value ', which becomes the value part of the JSON when serialized.
+/// - `content` : Stores the content of the string, renaming it as `$value`, which becomes the value part of the JSON when serialized.
 ///
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct D {
