@@ -1,18 +1,11 @@
-use dioxus::html::svg;
-// use anyhow::{Context, Result};
 use dioxus::prelude::*;
 use serde::{Deserialize, Serialize};
-use serde_json::Error;
 use serde_xml_rs::from_str;
 use std::io::BufRead;
 use std::{
     fs, io,
     process::{Command, ExitStatus},
 };
-
-pub fn add(left: u64, right: u64) -> u64 {
-    left + right
-}
 
 #[cfg(test)]
 mod tests {
