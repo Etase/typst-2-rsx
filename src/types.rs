@@ -1,6 +1,7 @@
+use std::{error::Error, fmt};
+
 use serde::{Deserialize, Serialize};
 
-// Struct required for parsing SVG
 /// Represents a serializable/deserialized SVG image structure.
 ///
 /// This structure is used to store the basic information of an SVG image, including class, width, height, and viewBox
@@ -9,25 +10,25 @@ use serde::{Deserialize, Serialize};
 /// # Example
 ///
 /// ```rust
-/// use serde_json;
-/// use my_svg_lib::Svg;
-/// use my_svg_lib::SvgEle;
+/// use serde_xml_rs;
+/// use typst-2-rsx::Svg;
+/// use typst-2-rsx::SvgEle;
 ///
 /// let svg = Svg {
 ///     class: "icon".to_string(),
 ///     width: "100".to_string(),
 ///     height: "100".to_string(),
 ///     view_box: "0 0 100 100".to_string(),
-///     elements: vec! [SvgEle::Path("M10 10H90V90H10Z".to_string())],
+///     elements: vec![SvgEle::Path("M10 10H90V90H10Z".to_string())],
 /// };
 ///
 /// // Serializes the Svg structure to JSON
-/// let serialized = serde_json::to_string(&svg).unwrap();
+/// let serialized = serde_xml_rs::to_string(&svg).unwrap();
 /// println! ("{}", serialized);
 ///
 /// // deserialize the JSON string back into the Svg structure
-/// let deserialized: Svg = serde_json::from_str(&serialized).unwrap();
-/// assert_eq! (svg, deserialized);
+/// let deserialized: Svg = serde_xml_rs::from_str(&serialized).unwrap();
+/// assert_eq!(svg, deserialized);
 /// ```
 ///
 /// # Field
@@ -49,7 +50,7 @@ pub struct Svg {
     /// Height of SVG (usually pixel value, e.g. "100")
     pub height: String,
 
-    /// 'viewBox' defines the SVG view area (format: 'minX minY width height')
+    /// `viewBox` defines the SVG view area (format: 'minX minY width height')
     #[serde(rename = "viewBox")]
     pub view_box: String,
 
@@ -63,13 +64,13 @@ pub struct Svg {
 /// This enumeration is used to store different types of SVG elements such as `Path` (path), `G` (grouping), `Defs` (definition).
 /// Where each variant corresponds to a specific SVG element structure, such as `Path` for the `<path>` tag, `G` for the `<g>` tag, and so on.
 ///
-/// The enumeration is serialized/deserialized using #[serde(rename_all = "kebab-case")].
+/// The enumeration is serialized/deserialized using `#[serde(rename_all = "kebab-case")]`.
 /// Ensure that the field name conforms to the SVG specification in JSON or XML (for example, the `Path` variant will be serialized to `path`).
 ///
 /// # Example
 ///
 /// ```rust
-/// use serde_json;
+/// use serde_xml_rs;
 /// use my_svg_lib::{SvgEle, Path};
 ///
 /// let path_element = SvgEle::Path(Path {
@@ -77,12 +78,12 @@ pub struct Svg {
 /// });
 ///
 /// // Serializes to JSON
-/// let serialized = serde_json::to_string(&path_element).unwrap();
+/// let serialized = serde_xml_rs::to_string(&path_element).unwrap();
 /// println! ("{}", serialized);
 ///
 /// // deserialize the JSON string back to SvgEle
-/// let deserialized: SvgEle = serde_json::from_str(&serialized).unwrap();
-/// assert_eq! (path_element, deserialized);
+/// let deserialized: SvgEle = serde_xml_rs::from_str(&serialized).unwrap();
+/// assert_eq!(path_element, deserialized);
 /// ```
 ///
 /// # Variant
@@ -94,31 +95,89 @@ pub struct Svg {
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "kebab-case")]
 pub enum SvgEle {
-    /// SVG '<path>' element, defining path data.
+    /// SVG `<path>` element, defining path data.
     Path(Path),
 
-    /// SVG '<g>' element, representing a graphic group that can contain multiple child elements.
+    /// SVG `<g>` element, representing a graphic group that can contain multiple child elements.
     G(G),
 
-    /// SVG '<defs>' element that stores reusable defined objects.
+    /// SVG `<defs>` element that stores reusable defined objects.
     Defs(Defs),
 }
 
-#[derive(Debug, Serialize, Deserialize, PartialEq)]
+/// Represents an SVG path with various styling attributes.
+///
+/// This struct is used to represent the `path` element in SVG, including the path data (`d`),
+/// optional CSS properties like `class`, `fill`, `stroke`, and other styling options for the stroke
+/// (e.g., `stroke-width`, `stroke-linecap`, `stroke-linejoin`, `stroke-miterlimit`). These attributes
+/// are typically used to style the SVG path element.
+///
+/// # Example
+///
+/// ```rust
+/// let path = Path {
+///     d: "M10 10 H 90 V 90 H 10 Z".to_string(),
+///     class: Some("my-path".to_string()),
+///     fill: Some("red".to_string()),
+///     stroke: Some("black".to_string()),
+///     stroke_width: Some("2".to_string()),
+///     ..Default::default()
+/// };
+/// println!("{:?}", path);
+/// ```
+///
+/// # Variants
+///
+/// - `d`: A string containing the path data that defines the shape of the path.
+/// - `class`: Optional string to assign a CSS class to the path.
+/// - `fill`: Optional string for the fill color of the path.
+/// - `stroke`: Optional string for the stroke (outline) color of the path.
+/// - `fill_rule`: Optional string to specify the fill rule (e.g., `"nonzero"`, `"evenodd"`).
+/// - `stroke_width`: Optional string specifying the width of the stroke.
+/// - `stroke_linecap`: Optional string to specify the stroke's linecap (e.g., `"butt"`, `"round"`, `"square"`).
+/// - `stroke_linejoin`: Optional string to specify the stroke's linejoin (e.g., `"miter"`, `"round"`, `"bevel"`).
+/// - `stroke_miterlimit`: Optional string to define the miter limit for the stroke, used when `stroke-linejoin` is `"miter"`.
+#[derive(Debug, Serialize, Deserialize, PartialEq, Default)]
 #[serde(rename_all = "kebab-case")]
 pub struct Path {
+    /// The "d" attribute that defines the path data in SVG.
+    /// This contains the instructions that describe the shape of the path.
     pub d: String,
+
+    /// Optional class attribute for the path.
+    /// This can be used to assign a CSS class to the path for styling purposes.
     pub class: Option<String>,
+
+    /// Optional fill color for the path.
+    /// Defines the color inside the path shape. It can be any valid CSS color string.
     pub fill: Option<String>,
+
+    /// Optional stroke color for the path.
+    /// Defines the color of the stroke (outline) of the path. It can be any valid CSS color string.
     pub stroke: Option<String>,
+
+    /// Optional fill rule for the path.
+    /// This determines how the interior of the path is filled (e.g., nonzero or evenodd).
     #[serde(rename = "fill-rule")]
     pub fill_rule: Option<String>,
+
+    /// Optional stroke width for the path.
+    /// Defines the thickness of the stroke (outline). The value is a string, but typically a number followed by a unit (e.g., "1px").
     #[serde(rename = "stroke-width")]
     pub stroke_width: Option<String>,
+
+    /// Optional stroke linecap for the path.
+    /// Defines the shape of the ends of the path stroke. Common values are "butt", "round", and "square".
     #[serde(rename = "stroke-linecap")]
     pub stroke_linecap: Option<String>,
+
+    /// Optional stroke linejoin for the path.
+    /// Defines the shape of the corners of the path stroke. Common values are "miter", "round", and "bevel".
     #[serde(rename = "stroke-linejoin")]
     pub stroke_linejoin: Option<String>,
+
+    /// Optional stroke miterlimit for the path.
+    /// This is used when the stroke linejoin is "miter". It determines the maximum allowed length of the mitered corner.
     #[serde(rename = "stroke-miterlimit")]
     pub stroke_miterlimit: Option<String>,
 }
@@ -160,11 +219,10 @@ pub struct Path {
 /// - **`fill - rule`** : define filling rules (such as `"evenodd"` or `"nonzero"`)
 ///
 /// Because of `#[serde(rename_all = "kebab-case")]`, all JSON fields will be automatically converted to **kebab-case** format.
-///
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "kebab-case")]
 pub enum PathEle {
-    /// Specifies a CSS class for the <path> element, such as' stroke-primary '
+    /// Specifies a CSS class for the <path> element, such as ` stroke-primary `
     Class(String),
 
     /// Specify the fill color of the <path> element, such as "#FF0000" or "red"
@@ -173,11 +231,11 @@ pub enum PathEle {
     /// Define the path data (SVG d attribute) for <path>, for example, "M10 10H90V90H10Z"
     D(String),
 
-    /// Specify a padding rule, such as' evenodd 'or' nonzero '
+    /// Specify a padding rule, such as ` evenodd ` or ` nonzero `
     FillRule(String),
 }
 
-/// represents the <g> (Group) element in SVG,
+/// Represents the `<g>` (Group) element in SVG,
 /// Can be used to group multiple SVG child elements and apply a `class` style or `transform` transform.
 ///
 /// The `G` struct supports **optional attributes**, such as ` class ` (CSS class) and ` transform ` (transform).
@@ -209,16 +267,15 @@ pub enum PathEle {
 /// - `class` (optional) : The CSS class name of the SVG `<g>` element, used to apply the style.
 /// - `transform` (optional) : The transform attribute, such as ` rotate(45) `, affects all elements in the group.
 /// - `elements` : List of included SVG child elements (type ` GEle `).
-///
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct G {
-    /// Optional CSS class name to use to style the '<g>' group
+    /// Optional CSS class name to use to style the `<g>` group
     pub class: Option<String>,
 
-    /// The optional 'transform' attribute, such as' rotate(45) 'or' scale(2) ', affects all elements in the group
+    /// The optional `transform` attribute, such as ` rotate(45) ` or ` scale(2) `, affects all elements in the group
     pub transform: Option<String>,
 
-    /// List of SVG child elements within a group, including elements of type 'GEle'
+    /// List of SVG child elements within a group, including elements of type `GEle`
     #[serde(rename = "$value")]
     pub elements: Vec<GEle>,
 }
@@ -249,20 +306,19 @@ pub struct G {
 /// - `G(G)` : stands for `<g>` element (grouping), used to organize multiple SVG elements.
 /// - `Use(Use)` : represents the `<use>` element, representing references to other SVG elements.
 /// - `Path(Path)` : represents the `<path>` element, which defines a path in SVG.
-///
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "kebab-case")]
 pub enum GEle {
-    /// stands for the 'class' attribute, which is commonly used to define CSS style classes for SVG
+    /// stands for the `class` attribute, which is commonly used to define CSS style classes for SVG
     Class(String),
 
-    /// stands for '<g>' element (grouping) and is used to organize multiple SVG elements
+    /// stands for `<g>` element (grouping) and is used to organize multiple SVG elements
     G(G),
 
-    /// represents the '<use>' element, representing references to other SVG elements
+    /// represents the `<use>` element, representing references to other SVG elements
     Use(Use),
 
-    /// represents the '<path>' element, which defines the path in SVG
+    /// represents the `<path>` element, which defines the path in SVG
     Path(Path),
 }
 /// Represents the structure of the SVG `<use>` element.
@@ -298,17 +354,16 @@ pub enum GEle {
 /// - `x` : the x coordinate of the element, usually a pixel value or a percentage string.
 /// - `fill_rule` : Fill rule. Possible values include `nonzero` or `evenodd`.
 /// - `href` : The ID of the referenced SVG element, usually in the form "#id", for example "#circle1".
-///
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "kebab-case")]
 pub struct Use {
-    /// Fill a color, such as' red ', '#ff0000', or 'none'.
+    /// Fill a color, such as ` red `, `#ff0000`, or `none`.
     pub fill: String,
 
-    /// 'x' coordinates, representing the horizontal position of the element in the SVG canvas.
+    /// `x` coordinates, representing the horizontal position of the element in the SVG canvas.
     pub x: String,
 
-    /// Fill rule, which determines how SVG graphics are filled. Common values are 'nonzero' or 'evenodd'.
+    /// Fill rule, which determines how SVG graphics are filled. Common values are `nonzero` or `evenodd`.
     pub fill_rule: String,
 
     /// referenced SVG element ID in the format "#id", for example "#circle1".
@@ -347,15 +402,14 @@ pub struct Use {
 ///
 /// - `id` : The ID of the `<defs>` element, which can be used to uniquely identify the definition block.
 /// - `elements` : contains a list of `Symbol` elements to store reusable graphic definitions.
-///
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Defs {
-    /// '<defs>' Unique ID of the element
+    /// `<defs>` Unique ID of the element
     pub id: String,
 
     /// List of Symbol elements contained in <defs>
     ///
-    /// These 'symbols' can be reused elsewhere in SVG, for example by' <use xlink:href="#id"> '.
+    /// These `symbols` can be reused elsewhere in SVG, for example by ` <use xlink:href="#id"> `.
     #[serde(rename = "$value")]
     pub elements: Vec<Symbol>,
 }
@@ -394,16 +448,15 @@ pub struct Defs {
 /// - `id` : a unique identifier for the SVG symbol, which can be used for `<use>` tag references.
 /// - `overflow` : The overflow style attribute of the symbol that defines whether content overflow is allowed.
 /// - `element` : The Path inside the symbol, representing the graphic content inside the symbol.
-///
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Symbol {
     // A unique identifier for the // symbol
     pub id: String,
 
-    /// 'overflow' style property, which determines whether the symbolic content can be overflowed
+    /// `overflow` style property, which determines whether the symbolic content can be overflowed
     pub overflow: String,
 
-    /// The graphic element inside the symbol (usually 'Path')
+    /// The graphic element inside the symbol (usually `Path`)
     #[serde(rename = "$value")]
     pub element: Path,
 }
@@ -435,7 +488,6 @@ pub struct Symbol {
 /// # Field
 ///
 /// - `content` : The actual stored text content, represented as a JSON direct string when serialized.
-///
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Class {
     /// Stored text content, serialized directly as a JSON string
@@ -472,10 +524,9 @@ pub struct Class {
 /// # Field
 ///
 /// - `content` : fill color values, such as `"red"`, `"#FF0000"`, `"none"`.
-///
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Fill {
-    /// The values of 'fill', such as' red ', '#FF0000', 'none', are serialized/deserialized to direct XML/JSON text content.
+    /// The values of `fill`, such as ` red `, `#FF0000`, `none`, are serialized/deserialized to direct XML/JSON text content.
     #[serde(rename = "$value")]
     content: String,
 }
@@ -511,10 +562,9 @@ pub struct Fill {
 /// - `content` : The value of the filling rule. Common values include:
 /// - `"nonzero"` : nonzero surround rule (default).
 /// - `"evenodd"` : indicates an odd-even wrapping rule.
-///
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct FillRule {
-    /// The value of 'fill-rule', such as' nonzero 'or' evenodd '
+    /// The value of `fill-rule`, such as ` nonzero ` or ` evenodd `
     #[serde(rename = "$value")]
     content: String,
 }
@@ -536,7 +586,7 @@ pub struct FillRule {
 ///
 /// // Serializes the D structure to JSON
 /// let serialized = serde_json::to_string(&d).unwrap();
-/// println! ("{}", serialized); // Output: "Hello, World!"
+/// println!("{}", serialized); // Output: "Hello, World!"
 ///
 /// // deserialize the JSON string back to the D structure
 /// let deserialized: D = serde_json::from_str(&serialized).unwrap();
@@ -546,10 +596,70 @@ pub struct FillRule {
 /// # Field
 ///
 /// - `content` : Stores the content of the string, renaming it as `$value`, which becomes the value part of the JSON when serialized.
-///
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct D {
     /// Stores the string content, which is mapped to the value part of JSON when serialized
     #[serde(rename = "$value")]
     content: String,
+}
+
+/// `ConvertError` is a custom error type used to represent an error that occurs during conversion.
+/// This error contains a `details` field that stores the detailed error information.
+#[derive(Debug)]
+pub struct ConvertError {
+    details: String,
+}
+
+impl ConvertError {
+    /// Creates a new instance of `ConvertError`
+    ///
+    /// # parameter
+    ///
+    /// * `msg` - Detailed description of the error.
+    ///
+    /// # Return value
+    ///
+    /// Returns a new instance of `ConvertError`.
+    ///
+    /// # Example
+    ///
+    /// ```rust
+    /// let error = ConvertError::new("An error occurred");
+    /// assert_eq!(error.details, "An error occurred");
+    /// ```
+    pub fn new(msg: &str) -> ConvertError {
+        ConvertError {
+            details: msg.to_string(),
+        }
+    }
+}
+
+/// implements the `fmt::Display` trait so that `ConvertError` can be printed in a friendly format.
+///
+/// # Example
+///
+/// ```
+/// let error = ConvertError::new("Some conversion error");
+/// println!("{}", error);   // Output: MyError: Some conversion error
+/// ```
+impl fmt::Display for ConvertError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "MyError: {}", self.details)
+    }
+}
+
+/// implements the std::error::Error trait so that ConvertError can be treated as a standard error.
+///
+/// `description` method returns the description of the error.
+///
+/// # Example
+///
+/// ```
+/// let error = ConvertError::new("Conversion failed");
+/// assert_eq!(error.description(), "Conversion failed");
+/// ```
+impl Error for ConvertError {
+    fn description(&self) -> &str {
+        &self.details
+    }
 }
