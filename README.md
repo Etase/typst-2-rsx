@@ -10,7 +10,6 @@ Convert **Typst** documents (`.typ`) into **RSX** elements as SVG components.
 
 - 🖋 **Automatic conversion**: Transform `.typ` documents into RSX-compatible SVG elements.
 - ⚡ **Seamless integration**: Use Typst-generated content in Rust UI frameworks.
-- 🔄 **CLI and Library support**: Can be used both as a library and a command-line tool.
 
 ## 🚀 Installation
 
@@ -35,29 +34,10 @@ println!("{}", rsx_svg);
 2. **Parses** the generated `.svg` file.
 3. **Transforms** the SVG elements into **RSX components**.
 
-## 💡 Example Output
-
-### **Input (`example.typ`)**
-
-```typst
-#set text(20pt)
-Hello, **Typst**!
-```
-
-### **Generated RSX**
-
-```rust
-rsx! {
-    svg {{
-        text {{ x: "10", y: "20", "Hello, ", tspan {{ font-weight: "bold", "Typst!" }} }}
-    }}
-}
-```
-
 ## 🛠 Dependencies
 
 - [typst-cli](https://github.com/typst/typst) – Required for Typst compilation.
-- [xml-rs](https://crates.io/crates/xml-rs) – Used for parsing SVG XML.
+- [serde_xml_rs](https://crates.io/crates/xml-rs) – Used for parsing SVG XML.
 - [dioxus](https://dioxuslabs.com/) – For rendering RSX (optional).
 
 ## 🤝 Contributing
