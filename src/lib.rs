@@ -193,6 +193,14 @@ fn construct_rsx_from_gele(tag: &GEle) -> Element {
                 stroke_miterlimit: path.stroke_miterlimit.clone().unwrap_or_default(),
             })
         }
+        GEle::Image(image) => {
+            rsx!(image {
+                width: image.width.clone(),
+                height: image.height.clone(),
+                preserve_aspect_ratio: image.preserve_aspect_ratio.clone(),
+                href: image.href.clone(),
+            })
+        }
         _ => {
             rsx!()
         }

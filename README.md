@@ -6,11 +6,6 @@ Convert **Typst** documents (`.typ`) into **RSX** elements as SVG components.
 
 `typst-2-rsx` is a Rust library that automates the conversion of **Typst** documents into **RSX** elements. It first uses the `typst` CLI to compile `.typ` files into `.svg`, and then parses the `.svg` file into RSX elements, making it easy to integrate Typst-generated content into Rust-based UI frameworks like **Dioxus**.
 
-## ✨ Features
-
-- 🖋 **Automatic conversion**: Transform `.typ` documents into RSX-compatible SVG elements.
-- ⚡ **Seamless integration**: Use Typst-generated content in Rust UI frameworks.
-
 ## 🚀 Installation
 
 ### Using Cargo
@@ -37,9 +32,8 @@ println!("{}", rsx_svg);
 ## 🛠 Dependencies
 
 - [typst-cli](https://github.com/typst/typst) – Required for Typst compilation.
-- [serde_xml_rs](https://crates.io/crates/xml-rs) – Used for parsing SVG XML.
 - [dioxus](https://dioxuslabs.com/) – For rendering RSX (optional).
-
+c
 ## 🤝 Contributing
 
 We welcome contributions! To get started:

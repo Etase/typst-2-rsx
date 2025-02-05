@@ -320,7 +320,11 @@ pub enum GEle {
 
     /// represents the `<path>` element, which defines the path in SVG
     Path(Path),
+
+    /// represents the `<image>` element, which is used to embed raster images in SVG.
+    Image(Image),
 }
+
 /// Represents the structure of the SVG `<use>` element.
 ///
 /// The `Use` struct is used to describe SVG `<use>` tag, which is used to reuse existing graphic elements.
@@ -370,6 +374,32 @@ pub struct Use {
     pub href: String,
 }
 
+/// Represents an SVG `<image>` element.
+///
+/// This struct defines the attributes required to embed a raster image within an SVG document.
+/// The fields correspond to standard SVG attributes:
+///
+/// # Field
+/// - `width`: Specifies the width of the image. The value is a string and may include units (e.g., `"100px"`, `"50%"`).
+/// - `height`: Specifies the height of the image, also as a string with potential units.
+/// - `preserve_aspect_ratio`: Determines how the image should scale within its viewport while preserving its aspect ratio.
+/// - `href`: Contains the URI of the image resource. This is used by the SVG renderer to locate and display the image.
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
+pub struct Image {
+    /// Specifies the width of the image.
+    pub width: String,
+
+    /// Specifies the height of the image.
+    pub height: String,
+
+    /// Determines how the image should scale within its viewport while preserving its aspect ratio.
+    #[serde(rename = "preserveAspectRatio")]
+    pub preserve_aspect_ratio: String,
+
+    /// Contains the URI of the image resource.
+    pub href: String,
+}
+
 /// Represents the struct of the `<defs>` element, which is used to store reusable SVG definitions.
 ///
 /// The `Defs` structure is usually used to contain reusable SVG elements such as `symbols`, which are not rendered directly.
@@ -398,7 +428,7 @@ pub struct Use {
 /// assert_eq! (defs, deserialized);
 /// ```
 ///
-/// # field
+/// # Field
 ///
 /// - `id` : The ID of the `<defs>` element, which can be used to uniquely identify the definition block.
 /// - `elements` : contains a list of `Symbol` elements to store reusable graphic definitions.
