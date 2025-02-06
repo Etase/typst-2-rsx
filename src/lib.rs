@@ -17,7 +17,7 @@ mod tests {
 
     #[test]
     fn example_test() {
-        let rsx = typst_to_rsx("./temp/temp.typ").unwrap();
+        let rsx = typst_to_rsx("./tmp/temp.typ").unwrap();
         let expected_output = read_file("./test/expected_output.txt").unwrap();
         assert_eq!(format!("{:?}", rsx).trim(), expected_output.trim());
     }
@@ -313,9 +313,9 @@ fn read_file(path: &str) -> Result<String, ConvertError> {
 /// }
 /// ```
 pub fn typst_to_rsx(input_typ_file: &str) -> Result<Element, ConvertError> {
-    match typst_compile(input_typ_file, "./temp/temp.svg") {
+    match typst_compile(input_typ_file, "./tmp/temp.svg") {
         Ok(_) => {
-            let content_result = read_file("./temp/temp.svg");
+            let content_result = read_file("./tmp/temp.svg");
 
             match content_result {
                 Ok(content) => {
