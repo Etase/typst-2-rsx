@@ -5,7 +5,6 @@ version = "0.1.0"
 description = "Convert Typst documents into RSX SVG elements for use in Rust UI development."
 edition = "2021"
 readme = "README.md"
-homepage = "https://github.com/Etase/typst-2-rsx"
 repository = "https://github.com/Etase/typst-2-rsx"
 
 [dependencies]
