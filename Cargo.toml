@@ -2,8 +2,11 @@
 name = "typst-2-rsx"
 license = "MIT OR Apache-2.0"
 version = "0.1.0"
-description = "Convert Typst documents into RSX elements for use in Rust UI development."
+description = "Convert Typst documents into RSX SVG elements for use in Rust UI development."
 edition = "2021"
+readme = "README.md"
+homepage = "https://github.com/Etase/typst-2-rsx"
+repository = "https://github.com/Etase/typst-2-rsx"
 
 [dependencies]
 dioxus = "0.6.2"
