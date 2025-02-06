@@ -1,6 +1,6 @@
 use dioxus::prelude::*;
 use serde_xml_rs::from_str;
-use std::io::{BufRead, Write};
+use std::io::BufRead;
 use std::{
     fs, io,
     process::{Command, ExitStatus},
@@ -23,32 +23,9 @@ mod tests {
     }
 }
 
-// 写入文件
-pub fn write_into_file(content: &str, path: &str, append: bool) {
-    let mut options = fs::OpenOptions::new();
-
-    if append {
-        options.append(true).write(true);
-    } else {
-        options.write(true).truncate(true); // 覆盖模式
-    }
-
-    options.create(true); // 如果文件不存在则创建
-
-    let mut file_result = options.open(path);
-    match file_result {
-        Ok(mut file) => {
-            file.write_all(content.as_bytes());
-        }
-        Err(e) => {
-            eprintln!("{:?}", e)
-        }
-    }
-}
-
 /// Compile the Typst file for SVG output.
 ///
-/// This function requires the Typst CLI to be installed and accessible from the system's PATH.
+/// **This function requires the Typst CLI to be installed and accessible from the system's PATH.**
 /// Ensure that you have Typst installed and properly configured before using this function.
 /// You can install Typst by following the instructions at: https://github.com/typst/typst
 ///
@@ -66,11 +43,6 @@ pub fn write_into_file(content: &str, path: &str, append: bool) {
 ///
 /// - `Ok(ExitStatus)` : If the compilation succeeds, return the exit status of the `typst` command, indicating the result of the command execution.
 /// - `Err(ConvertError)` : If an IO error occurs when a directory is created or a command is executed, an error message is returned.
-///
-/// # Error handling
-///
-/// If the output directory does not exist, the function will attempt to create it. If you encounter an error creating a directory or calling the `typst` command,
-/// the function returns an `io::Error`, which may be caused by a file system permission problem or a command failure.
 ///
 /// # Example
 ///
@@ -129,9 +101,9 @@ pub fn typst_compile(
 /// ```rust
 /// use typst_2_rsx::parse_svg_to_rsx;
 ///
-/// let svg_str = "<svg viewBox=`0 0 100 100` width=`100` height=`100`></svg>";
+/// let svg_str = "<svg viewBox='0 0 100 100' width='100' height='100'></svg>";
 /// match parse_svg_to_rsx(svg_str) {
-///     Ok(element) => println! ("RSX: {:? }", element),
+///     Ok(element) => println! ("RSX: {:?}", element),
 ///     Err(e) => eprintln! ("Error: {}", e),
 /// }
 /// ```
@@ -250,9 +222,6 @@ fn construct_rsx_from_gele(tag: &GEle) -> Element {
                 href: image.href.clone(),
                 transform: image.transform.clone(),
             })
-        }
-        _ => {
-            rsx!()
         }
     }
 }
