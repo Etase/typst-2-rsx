@@ -1,22 +1,48 @@
 use dioxus::prelude::*;
 use serde_xml_rs::from_str;
-use std::io::BufRead;
+use std::io::{BufRead, Write};
 use std::{
     fs, io,
     process::{Command, ExitStatus},
 };
 
-pub mod types;
-use types::*;
+pub mod svg_types;
+use svg_types::*;
+pub mod error;
+use error::*;
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
     #[test]
-    fn it_works() {
-        let rsx = typst_to_rsx("./temp/temp.typ");
-        println!("{:?}", rsx);
+    fn example_test() {
+        let rsx = typst_to_rsx("./temp/temp.typ").unwrap();
+        let expected_output = read_file("./test/expected_output.txt").unwrap();
+        assert_eq!(format!("{:?}", rsx).trim(), expected_output.trim());
+    }
+}
+
+// 写入文件
+pub fn write_into_file(content: &str, path: &str, append: bool) {
+    let mut options = fs::OpenOptions::new();
+
+    if append {
+        options.append(true).write(true);
+    } else {
+        options.write(true).truncate(true); // 覆盖模式
+    }
+
+    options.create(true); // 如果文件不存在则创建
+
+    let mut file_result = options.open(path);
+    match file_result {
+        Ok(mut file) => {
+            file.write_all(content.as_bytes());
+        }
+        Err(e) => {
+            eprintln!("{:?}", e)
+        }
     }
 }
 
@@ -39,7 +65,7 @@ mod tests {
 /// Returns a `Result` containing the following two cases:
 ///
 /// - `Ok(ExitStatus)` : If the compilation succeeds, return the exit status of the `typst` command, indicating the result of the command execution.
-/// - `Err(io::Error)` : If an IO error occurs when a directory is created or a command is executed, an error message is returned.
+/// - `Err(ConvertError)` : If an IO error occurs when a directory is created or a command is executed, an error message is returned.
 ///
 /// # Error handling
 ///
@@ -49,6 +75,8 @@ mod tests {
 /// # Example
 ///
 /// ```rust
+///  use typst_2_rsx::typst_compile;
+///
 ///  let input_file = "example.typ";
 ///  let output_file = "output.svg";
 ///  let result = typst_compile(input_file, output_file);
@@ -60,18 +88,24 @@ mod tests {
 pub fn typst_compile(
     input_typ_file: &str,
     output_svg_file: &str,
-) -> Result<ExitStatus, std::io::Error> {
+) -> Result<ExitStatus, ConvertError> {
     // Ensure the directory exists (create it recursively if it doesn't)
     let path = std::path::Path::new(output_svg_file);
     if !path.exists() {
-        fs::create_dir_all(path.parent().unwrap())?;
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
     }
     let status = Command::new("typst")
         .arg("compile") // Typst compile command
         .arg(input_typ_file) // Input file
         .arg(output_svg_file) // Output file
         .status();
-    status
+    match status {
+        Ok(status_content) => Ok(status_content),
+        Err(e) => {
+            eprintln!("{:?}", e);
+            Err(ConvertError::new(&e.to_string()))
+        }
+    }
 }
 
 /// Parses an SVG string and converts it to RSX code.
@@ -93,6 +127,8 @@ pub fn typst_compile(
 /// # Example
 ///
 /// ```rust
+/// use typst_2_rsx::parse_svg_to_rsx;
+///
 /// let svg_str = "<svg viewBox=`0 0 100 100` width=`100` height=`100`></svg>";
 /// match parse_svg_to_rsx(svg_str) {
 ///     Ok(element) => println! ("RSX: {:? }", element),
@@ -144,7 +180,13 @@ fn construct_rsx_from_ele(tag: &SvgEle) -> Element {
                 g {
                     class: g.class.clone().unwrap_or_default(),
                     transform: g.transform.clone().unwrap_or_default(),
-                    {g.elements.iter().map(|element| { construct_rsx_from_gele(&element) })}
+                    {
+                        let map_fn = |element: &svg_types::GEle| construct_rsx_from_gele(element);
+                        g.elements
+                            .as_ref()
+                            .map(|elements| elements.iter().map(map_fn))
+                            .unwrap_or_else(|| [].iter().map(map_fn))
+                    }
                 }
             )
         }
@@ -166,7 +208,13 @@ fn construct_rsx_from_gele(tag: &GEle) -> Element {
                 g {
                     class: g.class.clone().unwrap_or_default(),
                     transform: g.transform.clone().unwrap_or_default(),
-                    {g.elements.iter().map(|element| { construct_rsx_from_gele(&element) })}
+                    {
+                        let map_fn = |element: &svg_types::GEle| construct_rsx_from_gele(element);
+                        g.elements
+                            .as_ref()
+                            .map(|elements| elements.iter().map(map_fn))
+                            .unwrap_or_else(|| [].iter().map(map_fn))
+                    }
                 }
             }
         }
@@ -177,6 +225,7 @@ fn construct_rsx_from_gele(tag: &GEle) -> Element {
                     x: uuse.x.clone(),
                     fill_rule: uuse.fill_rule.clone(),
                     href: uuse.href.clone(),
+                    transform: uuse.transform.clone(),
                 }
             }
         }
@@ -199,6 +248,7 @@ fn construct_rsx_from_gele(tag: &GEle) -> Element {
                 height: image.height.clone(),
                 preserve_aspect_ratio: image.preserve_aspect_ratio.clone(),
                 href: image.href.clone(),
+                transform: image.transform.clone(),
             })
         }
         _ => {
@@ -212,12 +262,27 @@ fn construct_rsx_from_symbol(tag: &Symbol) -> Element {
     rsx!(
         symbol { id: tag.id.clone(), overflow: tag.overflow.clone(),
             {
-                rsx! {
-                    path {
-                        d: tag.element.d.clone(),
-                        class: tag.element.class.clone(),
-                        fill: tag.element.fill.clone(),
-                        fill_rule: tag.element.fill_rule.clone(),
+                match &tag.element {
+                    SymbolEle::Path(path) => {
+                        rsx! {
+                            path {
+                                d: path.d.clone(),
+                                class: path.class.clone(),
+                                fill: path.fill.clone(),
+                                fill_rule: path.fill_rule.clone(),
+                            }
+                        }
+                    }
+                    SymbolEle::Image(image) => {
+                        rsx! {
+                            image {
+                                width: image.width.clone(),
+                                height: image.height.clone(),
+                                preserve_aspect_ratio: image.preserve_aspect_ratio.clone(),
+                                href: image.href.clone(),
+                                transform: image.transform.clone(),
+                            }
+                        }
                     }
                 }
             }
@@ -226,7 +291,7 @@ fn construct_rsx_from_symbol(tag: &Symbol) -> Element {
 }
 
 // Read file
-fn read_file(path: &str) -> Result<String, String> {
+fn read_file(path: &str) -> Result<String, ConvertError> {
     match fs::File::open(path).with_context(|| "Failed to open file") {
         Ok(file) => {
             let reader = io::BufReader::new(file);
@@ -246,9 +311,7 @@ fn read_file(path: &str) -> Result<String, String> {
 
             Ok(content)
         }
-        Err(e) => {
-            panic!();
-        }
+        Err(e) => Err(ConvertError::new(&e.to_string())),
     }
 }
 
@@ -268,6 +331,8 @@ fn read_file(path: &str) -> Result<String, String> {
 /// # Example
 ///
 /// ```rust
+/// use typst_2_rsx::typst_to_rsx;
+///
 /// let rsx_result = typst_to_rsx("example.typ");
 /// match rsx_result {
 ///     Ok(rsx_element) => {
@@ -294,7 +359,7 @@ pub fn typst_to_rsx(input_typ_file: &str) -> Result<Element, ConvertError> {
                         Err(e) => Err(ConvertError::new(&e.to_string())),
                     }
                 }
-                Err(e) => Err(ConvertError::new(&e)),
+                Err(e) => Err(ConvertError::new(&e.to_string())),
             }
         }
         Err(e) => Err(ConvertError::new(&e.to_string())),
