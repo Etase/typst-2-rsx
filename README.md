@@ -33,15 +33,6 @@ println!("{}", rsx_svg);
 
 - [typst-cli](https://github.com/typst/typst) – Required for Typst compilation.
 - [dioxus](https://dioxuslabs.com/) – For rendering RSX (optional).
-c
-## 🤝 Contributing
-
-We welcome contributions! To get started:
-
-1. Fork the repository.
-2. Create a new branch (`feature/my-feature`).
-3. Commit your changes.
-4. Push to your branch and open a PR.
 
 ## 📜 License
 
