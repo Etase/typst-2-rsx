@@ -45,8 +45,4 @@ println!("{}", rsx_svg);
 
 ## 📜 License
 
-This project is licensed under **MIT License**.
-
----
-
-💡 **Need help?** Open an issue or reach out to us on GitHub!
+This project is licensed under **MIT OR Apache-2.0**.
