@@ -1,7 +1,7 @@
 [package]
 name = "typst-2-rsx"
 license = "MIT OR Apache-2.0"
-version = "0.1.0"
+version = "0.1.1"
 description = "Convert Typst documents into RSX SVG elements for use in Rust UI development."
 edition = "2021"
 readme = "README.md"
