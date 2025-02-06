@@ -14,6 +14,15 @@ Convert **Typst** documents (`.typ`) into **RSX** elements as SVG components.
 cargo add typst-2-rsx
 ```
 
+Or manually add to Cargo.toml:
+
+```toml
+[dependencies]
+typst-2-rsx = "0.1"
+```
+
+Then run the cargo build to compile.
+
 ## 📖 Usage
 
 ```rust
