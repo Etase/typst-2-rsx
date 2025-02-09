@@ -18,7 +18,7 @@ Or manually add to Cargo.toml:
 
 ```toml
 [dependencies]
-typst-2-rsx = "0.1.2"
+typst-2-rsx = "0.2.0"
 ```
 
 Then run the cargo build to compile.
