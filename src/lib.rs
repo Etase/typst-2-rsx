@@ -1,8 +1,7 @@
 use dioxus::prelude::*;
 use serde_xml_rs::from_str;
-use std::io::BufRead;
 use std::{
-    fs, io,
+    fs,
     process::{Command, ExitStatus},
 };
 
@@ -10,16 +9,26 @@ pub mod svg_types;
 use svg_types::*;
 pub mod error;
 use error::*;
+mod utils;
+use utils::*;
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    // #[test]
+    // fn compile_test() {
+    //     typst_compile("./tmp/temp.typ", "./tmp/temp.svg").unwrap();
+    //     let output_svg = read_file("./tmp/temp.svg").unwrap();
+    //     let expected_svg = read_file("./test/expected.svg").unwrap();
+    //     assert_eq!(output_svg.trim(), expected_svg.trim());
+    // }
+
     #[test]
-    fn example_test() {
-        let rsx = typst_to_rsx("./tmp/temp.typ").unwrap();
-        let expected_output = read_file("./test/expected_output.txt").unwrap();
-        assert_eq!(format!("{:?}", rsx).trim(), expected_output.trim());
+    fn convert_test() {
+        let output = typst_to_rsx("./tmp/temp.typ").unwrap();
+        let expected = read_file("./test/expected_rsx.txt").unwrap();
+        assert_eq!(format!("{:?}", output).trim(), expected.trim());
     }
 }
 
@@ -42,7 +51,7 @@ mod tests {
 /// Returns a `Result` containing the following two cases:
 ///
 /// - `Ok(ExitStatus)` : If the compilation succeeds, return the exit status of the `typst` command, indicating the result of the command execution.
-/// - `Err(ConvertError)` : If an IO error occurs when a directory is created or a command is executed, an error message is returned.
+/// - `Err(Error)` : If an IO error occurs when a directory is created or a command is executed, an error message is returned.
 ///
 /// # Example
 ///
@@ -57,15 +66,15 @@ mod tests {
 ///      Err(e) => eprintln! ("Failed to compile: {}", e),
 ///  }
 /// ```
-pub fn typst_compile(
-    input_typ_file: &str,
-    output_svg_file: &str,
-) -> Result<ExitStatus, ConvertError> {
+pub fn typst_compile(input_typ_file: &str, output_svg_file: &str) -> Result<ExitStatus, Error> {
     // Ensure the directory exists (create it recursively if it doesn't)
     let path = std::path::Path::new(output_svg_file);
     if !path.exists() {
-        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        if let Some(parent) = path.parent() {
+            fs::create_dir_all(parent)?
+        }
     }
+    // Call the typst cli to compile
     let status = Command::new("typst")
         .arg("compile") // Typst compile command
         .arg(input_typ_file) // Input file
@@ -73,10 +82,7 @@ pub fn typst_compile(
         .status();
     match status {
         Ok(status_content) => Ok(status_content),
-        Err(e) => {
-            eprintln!("{:?}", e);
-            Err(ConvertError::new(&e.to_string()))
-        }
+        Err(e) => Err(Error::TypstCompileError(e)),
     }
 }
 
@@ -112,7 +118,162 @@ pub fn typst_compile(
 ///
 /// - This function relies on the `from_str` function to parse the SVG string, assuming that the string is properly formatted. Misformatted SVG strings can cause parsing failures.
 ///
-pub fn parse_svg_to_rsx(svg_str: &str) -> Result<Element, ConvertError> {
+pub fn parse_svg_to_rsx(svg_str: &str) -> Result<Element, Error> {
+    /// Converts an `SvgElement` to the corresponding RSX `Element`.
+    ///
+    /// # Parameters
+    ///
+    /// - `tag`: A reference to the `SvgElement` to be converted.
+    ///
+    /// # Returns
+    ///
+    /// Returns the RSX `Element` corresponding to the input `SvgElement`.
+    ///
+    fn from_svg_element(tag: &SvgElement) -> Element {
+        match tag {
+            SvgElement::Path(path) => {
+                rsx!(path {
+                    d: path.d.clone(),
+                    class: path.class.clone().unwrap_or_default(),
+                    fill: path.fill.clone().unwrap_or_default(),
+                    fill_rule: path.fill_rule.clone().unwrap_or_default(),
+                    stroke: path.stroke.clone().unwrap_or_default(),
+                    stroke_width: path.stroke_width.clone().unwrap_or_default(),
+                    stroke_linecap: path.stroke_linecap.clone().unwrap_or_default(),
+                    stroke_linejoin: path.stroke_linejoin.clone().unwrap_or_default(),
+                    stroke_miterlimit: path.stroke_miterlimit.clone().unwrap_or_default(),
+                })
+            }
+            SvgElement::G(g) => {
+                rsx!(
+                    g {
+                        class: g.class.clone().unwrap_or_default(),
+                        transform: g.transform.clone().unwrap_or_default(),
+                        {
+                            let map_fn = |element: &svg_types::GEle| from_g_element(element);
+                            g.elements
+                                .as_ref()
+                                .map(|elements| elements.iter().map(map_fn))
+                                .unwrap_or_else(|| [].iter().map(map_fn))
+                        }
+                    }
+                )
+            }
+            SvgElement::Defs(defs) => {
+                rsx!(
+                    defs { id: defs.id.clone(),
+                        {defs.elements.iter().map(|element| { from_symbol(&element) })}
+                    }
+                )
+            }
+        }
+    }
+
+    /// Converts a `GEle` to the corresponding RSX `Element`.
+    ///
+    /// # Parameters
+    ///
+    /// - `tag`: A reference to the `GEle` to be converted.
+    ///
+    /// # Returns
+    ///
+    /// Returns the RSX `Element` corresponding to the input `GEle`.
+    ///
+    fn from_g_element(tag: &GEle) -> Element {
+        match tag {
+            GEle::G(g) => {
+                rsx! {
+                    g {
+                        class: g.class.clone().unwrap_or_default(),
+                        transform: g.transform.clone().unwrap_or_default(),
+                        {
+                            let map_fn = |element: &svg_types::GEle| from_g_element(element);
+                            g.elements
+                                .as_ref()
+                                .map(|elements| elements.iter().map(map_fn))
+                                .unwrap_or_else(|| [].iter().map(map_fn))
+                        }
+                    }
+                }
+            }
+            GEle::Use(uuse) => {
+                rsx! {
+                    r#use {
+                        fill: uuse.fill.clone(),
+                        x: uuse.x.clone(),
+                        fill_rule: uuse.fill_rule.clone(),
+                        href: uuse.href.clone(),
+                        transform: uuse.transform.clone(),
+                    }
+                }
+            }
+            GEle::Path(path) => {
+                rsx!(path {
+                    d: path.d.clone(),
+                    class: path.class.clone(),
+                    fill: path.fill.clone().unwrap_or_default(),
+                    fill_rule: path.fill_rule.clone().unwrap_or_default(),
+                    stroke: path.stroke.clone().unwrap_or_default(),
+                    stroke_width: path.stroke_width.clone().unwrap_or_default(),
+                    stroke_linecap: path.stroke_linecap.clone().unwrap_or_default(),
+                    stroke_linejoin: path.stroke_linejoin.clone().unwrap_or_default(),
+                    stroke_miterlimit: path.stroke_miterlimit.clone().unwrap_or_default(),
+                })
+            }
+            GEle::Image(image) => {
+                rsx!(image {
+                    width: image.width.clone(),
+                    height: image.height.clone(),
+                    preserve_aspect_ratio: image.preserve_aspect_ratio.clone(),
+                    href: image.href.clone(),
+                    transform: image.transform.clone(),
+                })
+            }
+        }
+    }
+
+    /// Converts a `Symbol` to the corresponding RSX `Element`.
+    ///
+    /// # Parameters
+    ///
+    /// - `tag`: A reference to the `Symbol` to be converted.
+    ///
+    /// # Returns
+    ///
+    /// Returns the RSX `Element` corresponding to the input `Symbol`.
+    ///
+    fn from_symbol(tag: &Symbol) -> Element {
+        rsx!(
+            symbol { id: tag.id.clone(), overflow: tag.overflow.clone(),
+                {
+                    match &tag.element {
+                        SymbolEle::Path(path) => {
+                            rsx! {
+                                path {
+                                    d: path.d.clone(),
+                                    class: path.class.clone(),
+                                    fill: path.fill.clone(),
+                                    fill_rule: path.fill_rule.clone(),
+                                }
+                            }
+                        }
+                        SymbolEle::Image(image) => {
+                            rsx! {
+                                image {
+                                    width: image.width.clone(),
+                                    height: image.height.clone(),
+                                    preserve_aspect_ratio: image.preserve_aspect_ratio.clone(),
+                                    href: image.href.clone(),
+                                    transform: image.transform.clone(),
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        )
+    }
+
     // First, parse the SVG string into an SVG structure
     match from_str(svg_str) {
         Ok(svg) => {
@@ -123,164 +284,11 @@ pub fn parse_svg_to_rsx(svg_str: &str) -> Result<Element, ConvertError> {
                     view_box: parsed.view_box.clone(),
                     width: parsed.width.clone(),
                     height: parsed.height.clone(),
-                    {parsed.elements.iter().map(|element| { construct_rsx_from_ele(&element) })}
+                    {parsed.elements.iter().map(|element| { from_svg_element(&element) })}
                 }
             ))
         }
-        Err(e) => Err(ConvertError::new(&e.to_string())),
-    }
-}
-
-// Sub-step: Construct Ele as rsx
-fn construct_rsx_from_ele(tag: &SvgEle) -> Element {
-    match tag {
-        SvgEle::Path(path) => {
-            rsx!(path {
-                d: path.d.clone(),
-                class: path.class.clone().unwrap_or_default(),
-                fill: path.fill.clone().unwrap_or_default(),
-                fill_rule: path.fill_rule.clone().unwrap_or_default(),
-                stroke: path.stroke.clone().unwrap_or_default(),
-                stroke_width: path.stroke_width.clone().unwrap_or_default(),
-                stroke_linecap: path.stroke_linecap.clone().unwrap_or_default(),
-                stroke_linejoin: path.stroke_linejoin.clone().unwrap_or_default(),
-                stroke_miterlimit: path.stroke_miterlimit.clone().unwrap_or_default(),
-            })
-        }
-        SvgEle::G(g) => {
-            rsx!(
-                g {
-                    class: g.class.clone().unwrap_or_default(),
-                    transform: g.transform.clone().unwrap_or_default(),
-                    {
-                        let map_fn = |element: &svg_types::GEle| construct_rsx_from_gele(element);
-                        g.elements
-                            .as_ref()
-                            .map(|elements| elements.iter().map(map_fn))
-                            .unwrap_or_else(|| [].iter().map(map_fn))
-                    }
-                }
-            )
-        }
-        SvgEle::Defs(defs) => {
-            rsx!(
-                defs { id: defs.id.clone(),
-                    {defs.elements.iter().map(|element| { construct_rsx_from_symbol(&element) })}
-                }
-            )
-        }
-    }
-}
-
-// Sub-step: Construct GEle as rsx
-fn construct_rsx_from_gele(tag: &GEle) -> Element {
-    match tag {
-        GEle::G(g) => {
-            rsx! {
-                g {
-                    class: g.class.clone().unwrap_or_default(),
-                    transform: g.transform.clone().unwrap_or_default(),
-                    {
-                        let map_fn = |element: &svg_types::GEle| construct_rsx_from_gele(element);
-                        g.elements
-                            .as_ref()
-                            .map(|elements| elements.iter().map(map_fn))
-                            .unwrap_or_else(|| [].iter().map(map_fn))
-                    }
-                }
-            }
-        }
-        GEle::Use(uuse) => {
-            rsx! {
-                r#use {
-                    fill: uuse.fill.clone(),
-                    x: uuse.x.clone(),
-                    fill_rule: uuse.fill_rule.clone(),
-                    href: uuse.href.clone(),
-                    transform: uuse.transform.clone(),
-                }
-            }
-        }
-        GEle::Path(path) => {
-            rsx!(path {
-                d: path.d.clone(),
-                class: path.class.clone().unwrap_or_default(),
-                fill: path.fill.clone().unwrap_or_default(),
-                fill_rule: path.fill_rule.clone().unwrap_or_default(),
-                stroke: path.stroke.clone().unwrap_or_default(),
-                stroke_width: path.stroke_width.clone().unwrap_or_default(),
-                stroke_linecap: path.stroke_linecap.clone().unwrap_or_default(),
-                stroke_linejoin: path.stroke_linejoin.clone().unwrap_or_default(),
-                stroke_miterlimit: path.stroke_miterlimit.clone().unwrap_or_default(),
-            })
-        }
-        GEle::Image(image) => {
-            rsx!(image {
-                width: image.width.clone(),
-                height: image.height.clone(),
-                preserve_aspect_ratio: image.preserve_aspect_ratio.clone(),
-                href: image.href.clone(),
-                transform: image.transform.clone(),
-            })
-        }
-    }
-}
-
-// Sub-step: Construct Symbol as rsx
-fn construct_rsx_from_symbol(tag: &Symbol) -> Element {
-    rsx!(
-        symbol { id: tag.id.clone(), overflow: tag.overflow.clone(),
-            {
-                match &tag.element {
-                    SymbolEle::Path(path) => {
-                        rsx! {
-                            path {
-                                d: path.d.clone(),
-                                class: path.class.clone(),
-                                fill: path.fill.clone(),
-                                fill_rule: path.fill_rule.clone(),
-                            }
-                        }
-                    }
-                    SymbolEle::Image(image) => {
-                        rsx! {
-                            image {
-                                width: image.width.clone(),
-                                height: image.height.clone(),
-                                preserve_aspect_ratio: image.preserve_aspect_ratio.clone(),
-                                href: image.href.clone(),
-                                transform: image.transform.clone(),
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    )
-}
-
-// Read file
-fn read_file(path: &str) -> Result<String, ConvertError> {
-    match fs::File::open(path).with_context(|| "Failed to open file") {
-        Ok(file) => {
-            let reader = io::BufReader::new(file);
-
-            let mut content = String::new();
-            for line in reader.lines() {
-                match line.with_context(|| "Failed to read content") {
-                    Ok(lines) => {
-                        content.push_str(&lines);
-                        content.push('\n'); // Manually append a newline to preserve the original format
-                    }
-                    Err(e) => {
-                        eprintln!("{:?}", e)
-                    }
-                }
-            }
-
-            Ok(content)
-        }
-        Err(e) => Err(ConvertError::new(&e.to_string())),
+        Err(e) => Err(Error::SvgParseError(e)),
     }
 }
 
@@ -304,33 +312,17 @@ fn read_file(path: &str) -> Result<String, ConvertError> {
 ///
 /// let rsx_result = typst_to_rsx("example.typ");
 /// match rsx_result {
-///     Ok(rsx_element) => {
-///         // continue with rsx_element...
+///     Ok(rsx) => {
+///         println!("{:?}",rsx);
 ///     }
 ///     Err(e) => {
-///         eprintln!("{}",e)
-///     }
+///         eprintln!("错误：{:?}",e);
+///     }   
 /// }
 /// ```
-pub fn typst_to_rsx(input_typ_file: &str) -> Result<Element, ConvertError> {
-    match typst_compile(input_typ_file, "./tmp/temp.svg") {
-        Ok(_) => {
-            let content_result = read_file("./tmp/temp.svg");
-
-            match content_result {
-                Ok(content) => {
-                    let rsx_result = parse_svg_to_rsx(&content);
-                    match rsx_result {
-                        Ok(rsx) => {
-                            println!("{:?}", rsx);
-                            Ok(rsx)
-                        }
-                        Err(e) => Err(ConvertError::new(&e.to_string())),
-                    }
-                }
-                Err(e) => Err(ConvertError::new(&e.to_string())),
-            }
-        }
-        Err(e) => Err(ConvertError::new(&e.to_string())),
-    }
+pub fn typst_to_rsx(input_typ_file: &str) -> Result<Element, Error> {
+    typst_compile(input_typ_file, "./tmp/temp.svg")?;
+    let content = read_file("./tmp/temp.svg")?;
+    let rsx = parse_svg_to_rsx(&content)?;
+    Ok(rsx)
 }

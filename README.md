@@ -18,7 +18,7 @@ Or manually add to Cargo.toml:
 
 ```toml
 [dependencies]
-typst-2-rsx = "0.1.1"
+typst-2-rsx = "0.1.2"
 ```
 
 Then run the cargo build to compile.
@@ -41,7 +41,7 @@ println!("{}", rsx_svg);
 ## 🛠 Dependencies
 
 - [typst-cli](https://github.com/typst/typst) – Required for Typst compilation.
-- [dioxus](https://dioxuslabs.com/) – For rendering RSX (optional).
+- [dioxus](https://dioxuslabs.com/)(optional) – For rendering RSX.
 
 ## 📜 License
 

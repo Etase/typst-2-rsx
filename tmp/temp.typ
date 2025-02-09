@@ -1,5 +1,6 @@
-#set page(width:auto,height:auto,margin:10pt);
-#set text(size:40pt);
+#set page(width:auto,height:auto,margin:10pt)
+#set text(size:40pt)
+
 *Date:* 26.12.2022 
 #highlight[important]\
 #lorem(3)\

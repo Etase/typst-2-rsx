@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 /// - `width` : the width of the SVG, usually in pixels (px).
 /// - `height` : the height of the SVG, usually in pixels (px).
 /// - `view_box` : the viewBox attribute of SVG, which defines the coordinate system range of SVG.
-/// - `elements` : a list of elements inside SVG, including the `SvgEle` enumeration, representing different SVG child elements.
+/// - `elements` : a list of elements inside SVG, including the `SvgElement` enumeration, representing different SVG child elements.
 ///
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 pub struct Svg {
@@ -25,7 +25,7 @@ pub struct Svg {
     pub view_box: String,
 
     #[serde(rename = "$value")]
-    pub elements: Vec<SvgEle>,
+    pub elements: Vec<SvgElement>,
 }
 
 /// Represents the child element enumeration type inside SVG.
@@ -44,7 +44,7 @@ pub struct Svg {
 ///
 #[derive(Debug, Serialize, Deserialize, PartialEq)]
 #[serde(rename_all = "kebab-case")]
-pub enum SvgEle {
+pub enum SvgElement {
     Path(Path),
 
     G(G),

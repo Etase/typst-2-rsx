@@ -1,50 +1,21 @@
-use std::fmt;
+use std::io;
 
-/// `ConvertError` is a custom error type used to represent an error that occurs during conversion.
-/// This error contains a `details` field that stores the detailed error information.
-#[derive(Debug)]
-pub struct ConvertError {
-    pub details: String,
-}
+/// Custom error type `Error` representing possible errors during I/O operations and type conversions.
+///
+/// This enum includes the following variants:
+///
+/// - `Io`: Encapsulates an [`io::Error`], indicating an I/O operation error.
+/// - `Convert`: Encapsulates a [`ConvertError`], indicating a type conversion error.
+///
+/// [`io::Error`]: https://doc.rust-lang.org/std/io/struct.Error.html
+/// [`ConvertError`]: crate::ConvertError
+#[derive(thiserror::Error, Debug)]
+pub enum Error {
+    /// SVG parsing error.
+    #[error("SVG parsing error: {0}")]
+    SvgParseError(#[from] serde_xml_rs::Error),
 
-impl ConvertError {
-    /// Creates a new instance of `ConvertError`
-    ///
-    /// # parameter
-    ///
-    /// * `msg` - Detailed description of the error.
-    ///
-    /// # Return value
-    ///
-    /// Returns a new instance of `ConvertError`.
-    ///
-    /// # Example
-    ///
-    /// ```rust
-    /// use typst_2_rsx::error::ConvertError;
-    ///
-    /// let error = ConvertError::new("An error occurred");
-    /// assert_eq!(error.details, "An error occurred");
-    /// ```
-    pub fn new(msg: &str) -> ConvertError {
-        ConvertError {
-            details: msg.to_string(),
-        }
-    }
-}
-
-/// implements the `fmt::Display` trait so that `ConvertError` can be printed in a friendly format.
-///
-/// # Example
-///
-/// ```rust
-/// use typst_2_rsx::error::ConvertError;
-///
-/// let error = ConvertError::new("Some conversion error");
-/// println!("{}", error);   // Output: MyError: Some conversion error
-/// ```
-impl fmt::Display for ConvertError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "MyError: {}", self.details)
-    }
+    /// Typst compilation error.
+    #[error("Typst compile error: {0}")]
+    TypstCompileError(#[from] io::Error),
 }
